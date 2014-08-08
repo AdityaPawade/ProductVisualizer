@@ -2,12 +2,12 @@ package adi.hack.ProductVisualizer;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
+import android.graphics.*;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
 
 import java.io.ByteArrayOutputStream;
@@ -23,6 +23,9 @@ public class CameraOverlay extends Activity {
 
     Bitmap imageBitmap;
 
+    Point coordInit = new Point();
+    Point coordEnd = new Point();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,11 +33,32 @@ public class CameraOverlay extends Activity {
         setContentView(R.layout.aug_view);
         cv=new CustomCameraView(getApplicationContext());
 
-        RelativeLayout l1=(RelativeLayout)findViewById(R.id.aug_camview);
+        RelativeLayout relLayout=(RelativeLayout)findViewById(R.id.aug_camview);
         cv.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT));
-        l1.addView(cv);
+        relLayout.addView(cv);
+
+        relLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int x = (int) event.getRawX();
+                int y = (int) event.getRawY();
+
+                switch (event.getAction()) {
+
+                    case MotionEvent.ACTION_DOWN:
+                        coordInit.x = x;
+                        coordInit.y = y;
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        coordEnd.x = x;
+                        coordEnd.y = y;
+
+                }
+                return true;
+            }
+        });
 
         augView = (RelativeLayout) findViewById(R.id.aug_camview);
 
@@ -43,12 +67,6 @@ public class CameraOverlay extends Activity {
         btn_capture.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-//                if(cv.isZoomed()) {
-//                    cv.unZoom();
-//                }
-//                else {
-//                    cv.zoom();
-//                }
                 btn_capture.setVisibility(View.INVISIBLE);
                 Toast.makeText(getApplicationContext(), "Capturing !", Toast.LENGTH_SHORT).show();
                 Bitmap screenShot = getScreenShot(augView);
@@ -79,6 +97,14 @@ public class CameraOverlay extends Activity {
         Canvas canvas = new Canvas(bitmap);
         view.draw(canvas);
         return bitmap;
+    }
+
+    public void shiftImageMargin(int marginX, int marginY) {
+        LinearLayout.LayoutParams layoutParams =(LinearLayout.LayoutParams) img_overlay.getLayoutParams();
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        lp.setMargins(left, top, right, bottom);
+        img_overlay.setLayoutParams(lp);
     }
 }
 
